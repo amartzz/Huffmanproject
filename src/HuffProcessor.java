@@ -80,15 +80,15 @@ public class HuffProcessor {
 		return encods;
 	}
 
-	private void codingHelper(HuffNode root, String string, String[] encods) {
+	private void codingHelper(HuffNode root, String path, String[] encods) {
 		// TODO Auto-generated method stub
 		if (root.myLeft==null && root.myRight==null) {
-			encods[root.myValue]=string;
+			encods[root.myValue]=path;
 			return;
 		}
 		//recursion
-		codingHelper(root.myLeft, string + "0", encods);
-		codingHelper(root.myRight, string + "0", encods);
+		codingHelper(root.myLeft, path + "0", encods);
+		codingHelper(root.myRight, path + "1", encods);
 		
 	}
 
