@@ -1,15 +1,3 @@
-
-/**
- * Although this class has a history of several years,
- * it is starting from a blank-slate, new and clean implementation
- * as of Fall 2018.
- * <P>
- * Changes include relying solely on a tree for header information
- * and including debug and bits read/written information
- * 
- * @author Owen Astrachan
- */
-
 public class HuffProcessor {
 
 	public static final int BITS_PER_WORD = 8;
@@ -58,13 +46,58 @@ public class HuffProcessor {
 	 * @param out
 	 *            Buffered bit stream writing to the output file.
 	 */
+	
+	
 	public void decompress(BitInputStream in, BitOutputStream out){
-
-		while (true){
-			int val = in.readBits(BITS_PER_WORD);
-			if (val == -1) break;
-			out.writeBits(BITS_PER_WORD, val);
-		}
+		int bits= in.readBits(BITS_PER_INT);
+		
+		
+		//two exceptions done
+		if(bits!= HUFF_TREE) throw new HuffException("wrong header, starts with" +bits);
+		
+	
+		HuffNode root= readTreeHeader(in);
+		readCompressedBits(root, in, out);
 		out.close();
+	}
+
+	private void readCompressedBits(HuffNode root, BitInputStream in, BitOutputStream out) {
+		// TODO Auto-generated method stub
+		HuffNode cur = root;
+		while(true) {
+			int b = in.readBits(1);
+			if(b == -1) throw new HuffException("wrong input");	
+			if (b==0) cur=cur.myLeft;
+			else cur= cur.myRight;
+			if (cur.myRight==null && cur.myLeft==null) {
+				if (cur.myValue == PSEUDO_EOF) break;
+				else {
+					out.writeBits(BITS_PER_WORD, cur.myValue);
+					cur= root;
+				}
+				
+			}
+		}
+		
+	}
+
+	private HuffNode readTreeHeader(BitInputStream in) {
+		// TODO Auto-generated method stub
+		int b = in.readBits(1);
+		if(b == -1) throw new HuffException("wrong input");
+		if(b == 0) { //repeat process until this no longer equals 0
+			HuffNode left = readTreeHeader(in);
+			HuffNode right= readTreeHeader(in);
+			return new HuffNode(0, 0, left, right);
+		}else { 
+			//end
+			int val = in.readBits(BITS_PER_WORD+1);
+			return new HuffNode(val, 0, null, null);
+		}
+		
+		
+		
+		
+		
 	}
 }
