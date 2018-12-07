@@ -42,6 +42,18 @@ public class HuffProcessor {
 		writeCompressedBits(codings, in, out);
 		out.close();
 	}
+	
+	private int[] readForCounts(BitInputStream in) {
+		int [] vals = new int[ALPH_SIZE + 1];
+		vals[PSEUDO_EOF]=1;
+		while(true) {
+			int b = in.readBits(BITS_PER_WORD);
+			if (b==-1) break;
+			vals[b]++;
+			
+		}
+		return vals;
+	}
 	private void writeCompressedBits(String[] encods, BitInputStream in, BitOutputStream out) {
 		// TODO Auto-generated method stub
 		while(true) {
@@ -106,20 +118,10 @@ public class HuffProcessor {
 		pq.add(x);
 	}
 	HuffNode r= pq.remove();
-		return r;
+	return r;
 	}
 
-	private int[] readForCounts(BitInputStream in) {
-		int [] vals = new int[ALPH_SIZE + 1];
-		vals[PSEUDO_EOF]=1;
-		while(true) {
-			int b = in.readBits(BITS_PER_WORD);
-			if (b==-1) break;
-			vals[b]++;
-			
-		}
-		return vals;
-	}
+
 
 	/**
 	 * Decompresses a file. Output file must be identical bit-by-bit to the
@@ -150,17 +152,20 @@ public class HuffProcessor {
 		HuffNode cur = root;
 		while(true) {
 			int b = in.readBits(1);
-			if(b == -1) throw new HuffException("wrong input");	
-			if (b==0) cur=cur.myLeft;
-			else cur= cur.myRight;
-			if (cur.myRight==null && cur.myLeft==null) {
-				if (cur.myValue == PSEUDO_EOF) break;
-				else {
-					out.writeBits(BITS_PER_WORD, cur.myValue);
-					cur= root;
+			if(b == -1) throw new HuffException("wrong input");
+			else {
+				if (b==0) cur=cur.myLeft;
+				else cur= cur.myRight;
+				if (cur.myRight==null && cur.myLeft==null) {
+					if (cur.myValue == PSEUDO_EOF) break;
+					else {
+						out.writeBits(BITS_PER_WORD, cur.myValue);
+						cur= root;
+					}
+					
 				}
-				
 			}
+			
 		}
 		
 	}
